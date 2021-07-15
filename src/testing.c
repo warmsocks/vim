@@ -824,6 +824,9 @@ f_assert_report(typval_T *argvars, typval_T *rettv)
 {
     garray_T	ga;
 
+    if (in_vim9script() && check_for_string_arg(argvars, 0) == FAIL)
+	return;
+
     prepare_assert_error(&ga);
     ga_concat(&ga, tv_get_string(&argvars[0]));
     assert_error(&ga);
@@ -1096,7 +1099,10 @@ f_test_garbagecollect_soon(typval_T *argvars UNUSED, typval_T *rettv UNUSED)
     void
 f_test_ignore_error(typval_T *argvars, typval_T *rettv UNUSED)
 {
-     ignore_error_for_testing(tv_get_string(&argvars[0]));
+    if (argvars[0].v_type != VAR_STRING)
+	emsg(_(e_invarg));
+    else
+	ignore_error_for_testing(tv_get_string(&argvars[0]));
 }
 
     void

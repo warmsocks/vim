@@ -896,11 +896,28 @@ ex_eval(exarg_T *eap)
 {
     typval_T	tv;
     evalarg_T	evalarg;
+    int		name_only = FALSE;
+    char_u	*p;
+    long	lnum = SOURCING_LNUM;
+
+    if (in_vim9script())
+    {
+	char_u	*alias;
+
+	p = eap->arg;
+	get_name_len(&p, &alias, FALSE, FALSE);
+	name_only = ends_excmd2(eap->arg, skipwhite(p));
+	vim_free(alias);
+    }
 
     fill_evalarg_from_eap(&evalarg, eap, eap->skip);
 
     if (eval0(eap->arg, &tv, eap, &evalarg) == OK)
+    {
 	clear_tv(&tv);
+	if (in_vim9script() && name_only && lnum == SOURCING_LNUM)
+	    semsg(_(e_expression_without_effect_str), eap->arg);
+    }
 
     clear_evalarg(&evalarg, eap);
 }
